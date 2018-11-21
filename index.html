@@ -1,0 +1,776 @@
+<!DOCTYPE>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Scorch</title>
+<style>
+.layers {
+	position: relative;
+	
+}
+#scorch {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+#scorch { z-index:1; border: solid 1px black;}
+
+</style>
+	<script> 
+		window.onload=function() {		
+			
+			scorch();
+			
+			end=0; //триггер конца игры
+			
+			function scorch() {
+				var canvas=document.getElementById('scorch');
+				var context=canvas.getContext('2d');
+				
+				var MaxX=640; 
+				var MaxY=480;
+				var LNUM=80; // количество вершин (точек), по которым генерируется территория
+				var mappoints=new Array(LNUM); 
+				
+				// функция рисования элипса (через кривые Безье)
+				function drawEllipse(centerX, centerY, width, height) {  
+					context.beginPath(); 
+					context.moveTo(centerX, centerY - height/2); // A1 
+
+					context.bezierCurveTo( 
+						centerX + width/2, centerY - height/2, // C1 
+						centerX + width/2, centerY + height/2, // C2 
+						centerX, centerY + height/2); // A2 
+
+					context.bezierCurveTo( 
+						centerX - width/2, centerY + height/2, // C3 
+						centerX - width/2, centerY - height/2, // C4 
+						centerX, centerY - height/2); // A1 
+
+					context.fill(); 
+					context.closePath(); 
+				}
+				
+				// функция получения случайного числа
+				function getRandomInt(min,max) {					
+					var rnd=Math.floor(Math.random()*(max-min+1))+ min;					
+					return rnd;
+				}	
+				
+				// генерация территории
+				function GenerateTerrain()
+				{
+					var llen=Math.ceil(MaxX/LNUM);									  
+					
+					// фон 
+					context.fillStyle='black';
+					context.fillRect(0,0,MaxX,MaxY);	
+					
+					// роза ветров				
+					context.beginPath();														
+					context.moveTo(20,20);
+					context.lineTo(30,15);
+					context.lineTo(35,5);
+					context.lineTo(40,15);
+					context.lineTo(50,20);
+					context.lineTo(40,25);
+					context.lineTo(35,35);
+					context.lineTo(30,25);
+					context.lineTo(20,20);
+					context.strokeStyle='Gold';
+					context.stroke();	
+					context.closePath();
+					
+					context.beginPath();
+					context.moveTo(20,20);
+					context.lineTo(50,20);
+					context.moveTo(35,5);
+					context.lineTo(35,35);
+					context.moveTo(30,15);
+					context.lineTo(40,25);
+					context.moveTo(40,15);
+					context.lineTo(30,25);
+					context.strokeStyle='Gold';
+					context.stroke();	
+					context.closePath();
+					
+					// делаем 50 звезд
+					for (var i=0; i<50; i++)
+					{	 
+						var x,y;
+						x=getRandomInt(1,MaxX); // место положения звезды на холсте по X
+						y=getRandomInt(1,MaxY-150); // место положения звезды на холсте по Y
+						
+						context.beginPath();														
+						context.moveTo(x,y);
+						context.lineTo(x+3,y-1);
+						context.lineTo(x+4,y-4);
+						context.lineTo(x+5,y-1);
+						context.lineTo(x+8,y);
+						context.lineTo(x+5,y+1);
+						context.lineTo(x+4,y+4);
+						context.lineTo(x+3,y+1);
+						context.lineTo(x,y);
+						context.fillStyle='yellow';
+						context.fill();	
+						context.closePath();				
+					}
+					
+					// генерим масштаб по линиям (mappoints)
+					mappoints[0]=MaxY-100;
+					context.moveTo(0,mappoints[0]);
+					context.fillStyle='white';
+					for (var i=1; i<=LNUM; i++) // для каждой вершины
+					{
+						if (i<LNUM/3) mappoints[i]=getRandomInt(1, 10); // в первой трети экрана (слева) низкие горы
+						else if (i>2*LNUM/3) mappoints[i]=getRandomInt(1, 10); // в третий трети экрана (справа) низкие горы
+						else mappoints[i]=getRandomInt(1, 200); // во второй трети экрана (середина) высокие горы
+						context.lineTo(i*llen,mappoints[0]-mappoints[i]); 
+					}	
+					context.lineTo(MaxX,MaxY);
+					context.lineTo(0,MaxY);				
+					context.fill();
+				}
+				
+				// направление и сила ветра
+				function DrawWindPower(windpower, winddirection)
+				{
+					// стрелки направления 
+					if (winddirection) // вправо
+					{								
+						context.beginPath();	
+						context.fillStyle='black';
+						context.fillRect(60,15,25,10);
+						context.fill();	
+						
+						context.fillStyle='Lime';		
+						context.moveTo(75,25);
+						context.lineTo(75,15);
+						context.lineTo(85,20);
+						context.lineTo(75,25);		
+						context.fill();					
+						context.closePath();
+						
+						context.beginPath();
+						context.fillStyle='Lime';	
+						context.fillRect(60,18,15,4);
+						context.fill();	
+						context.closePath();
+					}
+					else // влево
+					{								
+						context.beginPath();
+						context.fillStyle='black';
+						context.fillRect(60,15,25,10);
+						context.fill();	
+						
+						context.fillStyle='Lime';		
+						context.moveTo(70,25);
+						context.lineTo(70,15);
+						context.lineTo(60,20);
+						context.lineTo(70,25);		
+						context.fill();					
+						context.closePath();
+						
+						context.beginPath();
+						context.fillStyle='Lime';	
+						context.fillRect(70,18,15,4);
+						context.fill();	
+						context.closePath();
+					}
+					// текст со значением силы ветра
+					context.beginPath();
+					context.fillStyle='black';
+					context.fillRect(90,14,45,11);
+					context.fill();	
+					
+					context.fillStyle='Lime';	
+					context.font='bold 14px sans-serif';
+					context.fillText(windpower+' m/s',90,24);	
+					context.closePath();
+				}
+				
+				// Рисуем танк 1
+				function DrawTank1(t1x,corner)
+				{
+					var deltax=0, deltay=0; // куда смотрит пушка
+					if (corner==90)
+					{
+						deltax=0;
+						deltay=1;
+					}
+					else if (corner==0)
+					{
+						deltax=1;
+						deltay=0;
+					}
+					else
+					{
+						deltax=Math.cos(corner/(180/Math.PI));
+						deltay=Math.sin(corner/(180/Math.PI));					
+					}
+					
+					context.fillStyle='green';
+					context.strokeStyle='green';							
+					
+					// Рисуем танк
+					drawEllipse(t1x,mappoints[0]-10,40,15); // платформа танка
+					
+					 // башня танка
+					context.beginPath(); 
+					context.arc(t1x,mappoints[0]-16,8,Math.PI,0);
+					context.stroke();
+					context.closePath();
+					
+					// пушка танка
+					context.beginPath();			
+					context.moveTo(t1x+8,mappoints[0]-17);	
+					context.lineTo(t1x+8+Math.floor(20*deltax),mappoints[0]-17-Math.floor(20*deltay));
+					context.stroke();
+					context.closePath(); 
+				}			
+				
+				// Рисуем танк 2
+				function DrawTank2(t2x,corner)
+				{
+					var deltax=0, deltay=0; // куда смотрит пушка
+					if (corner==90)
+					{
+						deltax=0;
+						deltay=1;
+					}
+					else if (corner==0)
+					{
+						deltax=1;
+						deltay=0;
+					}
+					else
+					{
+						deltax=Math.cos(corner/(180/Math.PI));
+						deltay=Math.sin(corner/(180/Math.PI));
+					}
+					
+					context.fillStyle='maroon';
+					context.strokeStyle='maroon';
+					
+					// Рисуем танк
+					drawEllipse(t2x,mappoints[0]-10,40,15); // платформа танка
+					
+					 // башня танка
+					context.beginPath();
+					context.arc(t2x,mappoints[0]-16,8,Math.PI,0);
+					context.stroke();
+					context.closePath();
+					
+					// пушка танка
+					context.beginPath();					
+					context.moveTo(t2x-8,mappoints[0]-17);	
+					context.lineTo(t2x-8-Math.floor(20*deltax),mappoints[0]-17-Math.floor(20*deltay));
+					context.stroke();
+					context.closePath(); 
+				}			
+					
+					
+				// Указатель кто стреляет
+				function DrawWhoMove(partner)
+				{
+					 // Красный круг
+					if(partner==1)
+					{
+						context.fillStyle='red';      
+						context.beginPath();
+						context.arc(MaxX/8,MaxY-MaxY/10,10,0,Math.PI*2);
+						context.fill();
+						context.closePath();
+
+						context.fillStyle='white';      
+						context.beginPath();
+						context.arc(7*MaxX/8,MaxY-MaxY/10,15,0,Math.PI*2);
+						context.fill();
+						context.closePath();	
+						
+					}
+					  // Синий круг
+					else if(partner==2)
+					{
+						context.fillStyle='blue';      
+						context.beginPath();
+						context.arc(7*MaxX/8,MaxY-MaxY/10,10,0,Math.PI*2);
+						context.fill();
+						context.closePath();
+						
+						context.fillStyle='white';      
+						context.beginPath();
+						context.arc(MaxX/8,MaxY-MaxY/10,15,0,Math.PI*2);
+						context.fill();
+						context.closePath();
+					}
+				}	
+				
+				// рисуем число выстрелов
+				function DrawShootCount(scount,partner)
+				{		 
+					if (partner==1)
+					{
+						var n=scount;
+						context.beginPath();
+						context.fillStyle='white';  
+						context.fillRect(MaxX/32,7*MaxY/8,40,15);
+						context.font='bold 18px sans-serif';
+						context.fillStyle='magenta';  
+						context.fillText(n,MaxX/32,7*MaxY/8+14);
+						context.closePath();
+					}
+					else if (partner==2)
+					{
+						var n=scount;
+						context.beginPath();
+						context.fillStyle='white';  
+						context.fillRect(15*MaxX/16,7*MaxY/8,40,15);
+						context.font='bold 18px sans-serif';
+						context.fillStyle='cyan';  
+						context.fillText(n,15*MaxX/16,7*MaxY/8+14);
+						context.closePath();
+					}
+				}
+				
+				// функция стрельбы
+				function shoot(parnter, t1x, t2x, wp, wd, c1, c2)
+				{  
+					var deltax=0, deltay=0;
+					var wdir=0;
+					if (wd==0) wdir=-1;
+					else if (wd==1) wdir=1; 
+					
+					function shellFly(cx,cy) { // рисуем снаряд
+						context.fillStyle='grey';      
+						context.beginPath();					
+						context.arc(cx,cy,1,0,Math.PI*2);
+						context.fill();
+						context.closePath();
+						//console.log('нарисовали снаряд');
+					}
+					
+					function shellEraser(cx,cy) { // стираем снаряд
+						context.fillStyle='black';      
+						context.beginPath();
+						context.arc(cx,cy,2,0,Math.PI*2);
+						context.fill();
+						context.closePath();
+						//console.log('стёрли снаряд');
+					}			
+					
+					// если стреляет первый танк
+					if (parnter==1)
+					{
+						if (c1==90)
+						{
+						  deltax=0;
+						  deltay=1;
+						}
+						else if (c1==0)
+						{
+						  deltax=1;
+						  deltay=0;
+						}
+						else
+						{
+						  deltax=Math.cos(c1/(180/Math.PI));
+						  deltay=Math.sin(c1/(180/Math.PI));
+						}
+						var deltap=t1x+8+Math.floor(10*deltax);
+						var deltat=mappoints[0]-17-Math.floor(10*deltay);
+						var vx=10*deltax; // скорость снаряда по оси х (в пикселах)
+						var	vy=10*deltay; // скорость снаряда по оси у (в пикселах)
+						var x=deltap+vx;
+						var y=deltat-vy;	
+						
+						var i=0;
+						var coordinatesX=[];
+						var coordinatesY=[];	
+						
+						// параметры для взрыва
+						var count=0;
+						var colors=['yellow','black'];
+						var r=[10,15];	
+						
+						var timerId=setInterval(function() { 					
+							
+							i++;
+							var screenData=context.getImageData(x,y,1,1);	
+							var result;
+							
+							// Пока снаряд летит...						
+							coordinatesX.push(x);
+							coordinatesY.push(y);
+							
+							shellFly(coordinatesX[i-1],coordinatesY[i-1]);
+							shellEraser(coordinatesX[i-2],coordinatesY[i-2]);
+							
+							x+=vx;
+							y-=vy;
+							vy-=0.15;
+							vx+=wp*wdir*0.005;								
+							
+							// если попал в землю (белый цвет), то рисуем взрыв
+							if ( (screenData.data[0]==255)&&(screenData.data[1]==255)&&(screenData.data[2]==255) )
+							{
+								//console.log('попал в землю');
+								// рисуем взрыв
+								context.fillStyle='black';
+								context.beginPath();
+								context.arc(coordinatesX[i-2],coordinatesY[i-2],12,0,Math.PI*2);
+								context.fill();
+								context.closePath();
+								
+								clearInterval(timerId);	
+								
+								shellEraser(coordinatesX[i-1],coordinatesY[i-1]);		
+								coordinatesX=[];
+								coordinatesY=[];				
+								DrawWhoMove(partner);	
+							}
+							// Если попал в зеленого, рисуем взрыв и выходим с сообщением о попадании
+							else if ( (screenData.data[0]==0)&&(screenData.data[1]==128)&&(screenData.data[2]==0) ) 
+							{
+								// запоминаем координаты снаряда
+								var cx=coordinatesX[i-1];
+								var cy=coordinatesY[i-1];
+								// рисуем взрыв
+								var timer=setInterval(function() { 
+									context.fillStyle=''+colors[count]+'';
+									context.beginPath();	
+									context.arc(cx,cy,r[count],0,Math.PI*2);
+									context.fill();
+									context.closePath();
+									
+									count++;								
+									if(count==2) clearInterval(timer);
+								},200);
+								
+								clearInterval(timerId);	
+								
+								shellEraser(coordinatesX[i-1],coordinatesY[i-1]);
+								coordinatesX=[];
+								result=1;
+								DrawEnd(result);
+								console.log('попал в зеленого');
+								end=1; // конец игры
+							}
+							// Если попал в бордового, аналогично
+							else if ( (screenData.data[0]==128)&&(screenData.data[1]==0)&&(screenData.data[2]==0) )
+							{
+								// запоминаем координаты снаряда
+								var cx=coordinatesX[i-1];
+								var cy=coordinatesY[i-1];
+								// рисуем взрыв
+								var timer=setInterval(function() { 
+									context.fillStyle=''+colors[count]+'';
+									context.beginPath();	
+									context.arc(cx,cy,r[count],0,Math.PI*2);
+									context.fill();
+									context.closePath();
+									
+									count++;								
+									if(count==2) clearInterval(timer);
+								},200);
+								
+								clearInterval(timerId);	
+								
+								shellEraser(coordinatesX[i-1],coordinatesY[i-1]);
+								coordinatesX=[];
+								coordinatesY=[];
+								result=2;
+								DrawEnd(result);
+								console.log('попал в бордового');
+								end=1; // конец игры
+							}
+							// Иначе - если улетел, просто выходим
+							else if ( (x>MaxX)||(x<0) )						
+							{
+								//console.log('улетел');
+								clearInterval(timerId);
+
+								shellEraser(coordinatesX[i-1],coordinatesY[i-1]);							
+								coordinatesX=[];
+								coordinatesY=[];
+								DrawWhoMove(partner);
+							}						
+						}, 10);	
+					}	
+					
+					// тоже самое для второго танка
+					if (parnter==2)
+					{
+						if (c2==90)
+						{
+						  deltax=0;
+						  deltay=1;
+						}
+						else if (c2==0)
+						{
+						  deltax=1;
+						  deltay=0;
+						}
+						else
+						{
+						  deltax=Math.cos(c2/(180/Math.PI));
+						  deltay=Math.sin(c2/(180/Math.PI));
+						}
+						var deltap=t2x-8-Math.floor(10*deltax);
+						var deltat=mappoints[0]-17-Math.floor(10*deltay);
+						var vx=10*deltax; // скорость снаряда по оси х (в пикселах)
+						var vy=10*deltay; // скорость снаряда по оси у (в пикселах)
+						var x=deltap-vx;
+						var y=deltat-vy;
+						
+						var j=0;
+						var coordinatesX2=[];
+						var coordinatesY2=[];
+						
+						// параметры для взрыва
+						var count=0;
+						var colors=['yellow','black'];
+						var r=[10,15];	
+						
+						var timerId=setInterval(function() { 					
+							
+							j++;
+							var screenData=context.getImageData(x,y,1,1);	
+							
+							// Пока снаряд летит...
+							coordinatesX2.push(x);
+							coordinatesY2.push(y);
+							
+							shellFly(coordinatesX2[j-1],coordinatesY2[j-1]);
+							shellEraser(coordinatesX2[j-2],coordinatesY2[j-2]);												
+							
+							x-=vx;
+							y-=vy;
+							vy-=0.15;
+							vx-=wp*wdir*0.005;							
+							
+							// если попал в землю (белый цвет), то рисуем взрыв
+							if ( (screenData.data[0]==255)&&(screenData.data[1]==255)&&(screenData.data[2]==255) )
+							{	
+								//console.log('попал в землю');
+								context.fillStyle='black';
+								context.beginPath();	
+								context.arc(coordinatesX2[j-2],coordinatesY2[j-2],12,0,Math.PI*2);
+								context.fill();
+								context.closePath();
+								
+								clearInterval(timerId);	
+								
+								shellEraser(coordinatesX2[j-1],coordinatesY2[j-1]);	
+								coordinatesX2=[];
+								coordinatesY2=[];
+								DrawWhoMove(partner);
+							}
+							// Если попал в зеленого, рисуем взрыв и выходим с сообщением о попадании
+							else if ( (screenData.data[0]==0)&&(screenData.data[1]==128)&&(screenData.data[2]==0) ) 
+							{
+								var cx=coordinatesX2[j-1];
+								var cy=coordinatesY2[j-1];
+								// рисуем взрыв
+								var timer=setInterval(function() { 
+									context.fillStyle=''+colors[count]+'';
+									context.beginPath();	
+									context.arc(cx,cy,r[count],0,Math.PI*2);
+									context.fill();
+									context.closePath();
+									
+									count++;								
+									if(count==2) clearInterval(timer);
+								},200);
+								
+								clearInterval(timerId);	
+								
+								shellEraser(coordinatesX2[j-1],coordinatesY2[j-1]);	
+								coordinatesX2=[];
+								coordinatesY2=[];	
+								result=1;
+								DrawEnd(result);
+								console.log('попал в зеленого');
+								end=1; // конец игры
+							}
+							// Если попал в бордового, аналогично
+							else if ( (screenData.data[0]==128)&&(screenData.data[1]==0)&&(screenData.data[2]==0) )
+							{	
+								var cx=coordinatesX2[j-1];
+								var cy=coordinatesY2[j-1];
+								// рисуем взрыв
+								var timer=setInterval(function() { 
+									context.fillStyle=''+colors[count]+'';
+									context.beginPath();	
+									context.arc(cx,cy,r[count],0,Math.PI*2);
+									context.fill();
+									context.closePath();
+									
+									count++;								
+									if(count==2) clearInterval(timer);
+								},200);
+								
+								clearInterval(timerId);	
+								
+								shellEraser(coordinatesX2[j-1],coordinatesY2[j-1]);	
+								coordinatesX2=[];
+								coordinatesY2=[];
+								result=2;
+								DrawEnd(result);
+								console.log('попал в бордового');
+								end=1; // конец игры
+							}
+							// Иначе - если улетел, просто выходим
+							else if ( (x>MaxX)||(x<0) )						
+							{
+								//console.log('улетел');
+								clearInterval(timerId);	
+								
+								shellEraser(coordinatesX2[j-1],coordinatesY2[j-1]);	
+								coordinatesX2=[];
+								coordinatesY2=[];
+								DrawWhoMove(partner);
+							}						
+						}, 10);	
+					}
+				}
+				
+				// рисуем кто выиграл
+				function DrawEnd(whowon)
+				{
+					if (whowon==2)
+					{
+						context.beginPath();					
+						context.fillStyle='green';	
+						context.font='bold 28px sans-serif';
+						context.fillText('Green player won!  ',MaxX/3-20,MaxY/2);	
+						context.closePath();
+					}
+					else if (whowon==1)
+					{
+						context.beginPath();					
+						context.fillStyle='maroon';	
+						context.font='bold 28px sans-serif';
+						context.fillText('Maroon player won!  ',MaxX/3-20,MaxY/2);	
+						context.closePath();
+					}
+				}
+				
+				GenerateTerrain();
+
+				var tank1x=MaxX/8; // положение танка 1 по оси Х канваса
+				var corn1=0; // угол наклона пушки
+				DrawTank1(tank1x,corn1);
+				
+				var tank2x=7*MaxX/8; // положение танка 2 по оси Х канваса
+				var corn2=0; // угол наклона пушки
+				DrawTank2(tank2x,corn2);
+				
+				var scount1=0, scount2=0;
+				DrawShootCount(scount1,1);
+				DrawShootCount(scount2,2);
+				
+				document.addEventListener("keydown", keyDownTextField, false);
+				
+				var partner=getRandomInt(1,2);
+				DrawWhoMove(partner);
+				var wp=getRandomInt(0,10);
+				var wd=getRandomInt(0,1);
+				DrawWindPower(wp,wd);
+
+				function keyDownTextField(e) {
+					if(!end) {
+						var keyCode=e.keyCode;
+						if(keyCode==32) {  // если жмем прбел (выстрел)
+							if(partner==1) {
+								shoot(1,tank1x,tank2x,wp,wd,corn1,corn2);
+								scount1++;
+								DrawShootCount(scount1,partner);
+								partner=2;
+								//DrawWhoMove(partner);
+								
+								wp=getRandomInt(0,10);
+								wd=getRandomInt(0,1);	
+								DrawWindPower(wp,wd);	
+							} else if(partner==2) {						
+								shoot(2,tank1x,tank2x,wp,wd,corn1,corn2);
+								scount2++;
+								DrawShootCount(scount2, partner);
+								partner=1;
+								//DrawWhoMove(partner);
+								 
+								wp=getRandomInt(0,10);
+								wd=getRandomInt(0,1);	
+								DrawWindPower(wp,wd);
+							}
+						}
+						if (partner==1) { // первый танк
+							if(keyCode==38) { // если жмем стрелку вверх (поднимаем пушку)
+								if (corn1+1<=90)
+								{
+									corn1++;						
+									
+									context.fillStyle='black';      // стираем его
+									context.beginPath();
+									context.fillRect(69,339,43,25);
+									context.closePath();
+									
+									DrawTank1(tank1x, corn1);
+								}
+							} else if(keyCode==40){ // если жмем стрелку вниз (опускаем пушку)
+								if (corn1-1>=0)
+								{
+									corn1--;
+									
+									context.fillStyle='black';      // стираем его
+									context.beginPath();
+									context.fillRect(69,339,43,25);
+									context.closePath();
+									
+									DrawTank1(tank1x, corn1);
+								}
+							}
+						} else if (partner==2) { // второй танк
+							if(keyCode==38) { // если жмем стрелку вверх (поднимаем пушку)
+								if (corn2+1<=90)
+								{
+									corn2++;		
+										
+									context.fillStyle='black';      // стираем его
+									context.beginPath();	
+									context.fillRect(MaxX-69-43,339,43,25);
+									context.closePath();
+									
+									DrawTank2(tank2x, corn2);
+								}
+							} else if(keyCode==40){ // если жмем стрелку вниз (опускаем пушку)
+								if (corn2-1>=0)
+								{
+									corn2--;
+									
+									context.fillStyle='black';      // стираем его
+									context.beginPath();
+									context.fillRect(MaxX-69-43,339,43,25);
+									context.closePath();
+									
+									DrawTank2(tank2x, corn2);
+								}
+							}
+						}
+					}
+				}
+			}
+		}	
+		
+	</script>	
+</head>
+
+<body>
+	<div class="layers">
+		<canvas id="scorch" width="640" height="480">
+			<p>Ваш браузер не поддерживает рисование.</p>
+		</canvas>	
+	</div>
+</body>
+</html>
