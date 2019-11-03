@@ -17,7 +17,7 @@
     "index": 1,
     "guid": "3ba1d55b-6df3-4b97-8a11-e3f17c3c86ba",
     "isActive": true,
-    "picture": "http://placehold.it/50x50",
+    "picture": "images/small/1.png",
     "city": "Rosburg",
     "name": {
       "first": "Blake",
@@ -30,7 +30,7 @@
     "index": 2,
     "guid": "5e9f56ab-8acc-425b-a870-fc3da7e1dbad",
     "isActive": false,
-    "picture": "http://placehold.it/50x50",
+     "picture": "images/small/2.png",
     "city": "Siglerville",
     "name": {
       "first": "Mccarty",
@@ -43,7 +43,7 @@
     "index": 3,
     "guid": "ae23dfde-8361-4df5-8351-908e061559d3",
     "isActive": false,
-    "picture": "http://placehold.it/50x50",
+    "picture": "images/small/3.png",
     "city": "Kenvil",
     "name": {
       "first": "Clay",
@@ -56,7 +56,7 @@
     "index": 4,
     "guid": "1c179d0d-dd4d-4f59-adad-6e1ad4f6e74d",
     "isActive": true,
-    "picture": "http://placehold.it/50x50",
+     "picture": "images/small/4.png",
     "city": "Cassel",
     "name": {
       "first": "Cooley",
@@ -69,7 +69,7 @@
     "index": 5,
     "guid": "73cb4763-5873-41df-8c1d-5e3bc652405c",
     "isActive": false,
-    "picture": "http://placehold.it/50x50",
+     "picture": "images/small/5.png",
     "city": "Grayhawk",
     "name": {
       "first": "Melisa",
