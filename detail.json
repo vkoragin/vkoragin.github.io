@@ -8,23 +8,23 @@
   ],
   "pictures": [
     {
-      "url": "http://placehold.it/134x133",
+      "url": "images/details/1.jpg",
       "likes": 163
     },
     {
-      "url": "http://placehold.it/134x133",
+      "url": "images/details/2.jpg",
       "likes": 170
     },
     {
-      "url": "http://placehold.it/134x133",
+      "url": "images/details/3.jpg",
       "likes": 181
     },
     {
-      "url": "http://placehold.it/134x133",
+      "url": "images/details/4.jpg",
       "likes": 71
     },
     {
-      "url": "http://placehold.it/134x133",
+      "url": "images/details/5.jpg",
       "likes": 200
     }
   ]
